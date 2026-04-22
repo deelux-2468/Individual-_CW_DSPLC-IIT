@@ -1,0 +1,4 @@
+Program started
+Datasets are loaded successfully
+Financial_Hardships dataset shape: (2488, 29)
+Health_Coverage dataset shape: (975, 27)
