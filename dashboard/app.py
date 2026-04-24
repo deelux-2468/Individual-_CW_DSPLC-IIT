@@ -14,7 +14,7 @@ st.set_page_config(
 # ── LOAD DATA ──
 @st.cache_data
 def load_data():
-    df = pd.read_csv("/Users/deannalakshman/Desktop/IIT/YEAR 2/SEM 2/DSPLC/Individual technical/Cleaned_datasets/Health_Coverage_Financial_Hardship.csv")
+    df = pd.read_csv("/Users/deannalakshman/Desktop/IIT/YEAR 2/SEM 2/DSPLC/Individual technical/Cleaned_datasets/Financial_Hardships_Cleaned.csv")
     return df
 
 df = load_data()
