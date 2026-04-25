@@ -117,10 +117,10 @@ st.sidebar.markdown("Exploring Financial Hardship due to out-of-pocket health ex
 st.sidebar.markdown("---")
 
 page = st.sidebar.radio("Navigate", [
-    "🌍 Global Overview",
-    "📈 Trends Over Time",
-    "🔍 Country Deep Dive",
-    "📊 Breakdown Analysis"
+    "Global Overview",
+    "Trends Over Time",
+    "Country Deep Dive",
+    "Breakdown Analysis"
 ])
 
 st.sidebar.markdown("---")
