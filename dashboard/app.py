@@ -126,7 +126,7 @@ page = st.sidebar.radio("Navigate", [
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Data Source:** WHO Universal Health Coverage")
 
-if page == "🌍 Global Overview":
+if page == "Global Overview":
     st.title("Global Overview")
     st.markdown("Exploring financial hardship from out-of-pocket health spending across 162 countries.")
 
@@ -248,7 +248,7 @@ if page == "🌍 Global Overview":
     )
     st.plotly_chart(fig_hist, use_container_width=True)
 
-elif page == "📈 Trends Over Time":
+elif page == "Trends Over Time":
     st.title("Trends Over Time")
     st.markdown("Track how financial hardship has evolved across countries from 2000 to 2023.")
 
@@ -328,3 +328,290 @@ elif page == "📈 Trends Over Time":
     )
     fig_area.update_traces(line_color="#0c5369", fillcolor="rgba(74, 156, 186, 0.3)")
     st.plotly_chart(fig_area, use_container_width=True)
+
+elif page == "Country Deep Dive":
+    st.title("Country Deep Dive")
+    st.markdown("Explore financial hardship data for a specific country in detail.")
+
+    YEARS = [str(y) for y in range(2000, 2024)]
+
+    # ── FILTERS ──
+    col_f1, col_f2 = st.columns(2)
+
+    with col_f1:
+        all_countries = sorted(df['REF_AREA_LABEL'].unique().tolist())
+        selected_country = st.selectbox("Select Country", options=all_countries, index=all_countries.index("India"))
+
+    with col_f2:
+        selected_hardship = st.selectbox(
+            "Select Hardship Type",
+            options=["All", "Large OOP", "Impoverishing", "Pushed into poverty", "Further impoverished"]
+        )
+
+    st.markdown("---")
+
+    # ── FILTER DATA FOR SELECTED COUNTRY ──
+    df_country = df[
+        (df['REF_AREA_LABEL'] == selected_country) &
+        (df['URBANIZATION_LABEL'] == 'Total') &
+        (df['IC_QUINTILE_LABEL'] == 'All') &
+        (df['FINANCIAL_HARDSHIP_LABEL'] == selected_hardship)
+    ].copy()
+
+    df_country_long = df_country.melt(
+        id_vars=['REF_AREA_LABEL'],
+        value_vars=YEARS,
+        var_name='Year',
+        value_name='Value'
+    )
+    df_country_long['Year'] = df_country_long['Year'].astype(int)
+    df_country_long = df_country_long.dropna(subset=['Value'])
+
+    # ── KPI CARDS ──
+    if not df_country_long.empty:
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Average Hardship Rate", f"{df_country_long['Value'].mean():.1f}%")
+        with col2:
+            st.metric("Highest Rate", f"{df_country_long['Value'].max():.1f}%")
+        with col3:
+            st.metric("Latest Available Year", str(df_country_long['Year'].max()))
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── LINE CHART: country trend ──
+        st.subheader(f"Financial Hardship Trend — {selected_country}")
+        fig_line = px.line(
+            df_country_long,
+            x='Year', y='Value',
+            markers=True,
+            labels={'Value': '% Population', 'Year': 'Year'}
+        )
+        fig_line.update_traces(line_color="#0c5369", marker=dict(color="#0c5369"))
+        fig_line.update_layout(
+            font=dict(family="Montserrat, sans-serif"),
+            xaxis_title="Year",
+            yaxis_title="% Population facing financial hardship",
+            height=400,
+            margin=dict(l=0, r=0, t=40, b=0),
+            xaxis=dict(tickmode='linear', tick0=2000, dtick=2)
+        )
+        st.plotly_chart(fig_line, use_container_width=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── BAR CHART: breakdown by urbanization ──
+        st.subheader(f"Breakdown by Urbanization — {selected_country}")
+        df_urban = df[
+            (df['REF_AREA_LABEL'] == selected_country) &
+            (df['IC_QUINTILE_LABEL'] == 'All') &
+            (df['FINANCIAL_HARDSHIP_LABEL'] == selected_hardship) &
+            (df['URBANIZATION_LABEL'] != 'Total')
+        ].melt(
+            id_vars=['URBANIZATION_LABEL'],
+            value_vars=YEARS,
+            var_name='Year',
+            value_name='Value'
+        ).dropna(subset=['Value'])
+
+        df_urban['Year'] = df_urban['Year'].astype(int)
+
+        if df_urban.empty:
+            st.info("No urbanization breakdown available for this country.")
+        else:
+            fig_urban = px.line(
+                df_urban,
+                x='Year', y='Value',
+                color='URBANIZATION_LABEL',
+                markers=True,
+                labels={'Value': '% Population', 'URBANIZATION_LABEL': 'Area', 'Year': 'Year'}
+            )
+            fig_urban.update_layout(
+                font=dict(family="Montserrat, sans-serif"),
+                height=380,
+                margin=dict(l=0, r=0, t=40, b=0),
+                xaxis=dict(tickmode='linear', tick0=2000, dtick=2)
+            )
+            st.plotly_chart(fig_urban, use_container_width=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── BAR CHART: breakdown by wealth quintile ──
+        st.subheader(f"Breakdown by Wealth Quintile — {selected_country}")
+        df_quint = df[
+            (df['REF_AREA_LABEL'] == selected_country) &
+            (df['URBANIZATION_LABEL'] == 'Total') &
+            (df['FINANCIAL_HARDSHIP_LABEL'] == selected_hardship) &
+            (df['IC_QUINTILE_LABEL'] != 'All')
+        ].melt(
+            id_vars=['IC_QUINTILE_LABEL'],
+            value_vars=YEARS,
+            var_name='Year',
+            value_name='Value'
+        ).dropna(subset=['Value'])
+
+        df_quint['Year'] = df_quint['Year'].astype(int)
+
+        if df_quint.empty:
+            st.info("No wealth quintile breakdown available for this country.")
+        else:
+            fig_quint = px.line(
+                df_quint,
+                x='Year', y='Value',
+                color='IC_QUINTILE_LABEL',
+                markers=True,
+                labels={'Value': '% Population', 'IC_QUINTILE_LABEL': 'Wealth Quintile', 'Year': 'Year'}
+            )
+            fig_quint.update_layout(
+                font=dict(family="Montserrat, sans-serif"),
+                height=380,
+                margin=dict(l=0, r=0, t=40, b=0),
+                xaxis=dict(tickmode='linear', tick0=2000, dtick=2)
+            )
+            st.plotly_chart(fig_quint, use_container_width=True)
+
+    else:
+        st.warning("No data available for the selected country and hardship type.")
+
+elif page == "Breakdown Analysis":
+    st.title("Breakdown Analysis")
+    st.markdown("Explore financial hardship across different dimensions — urbanization, wealth quintile and hardship type.")
+
+    YEARS = [str(y) for y in range(2000, 2024)]
+
+    # ── FILTERS ──
+    col_f1, col_f2 = st.columns(2)
+
+    with col_f1:
+        selected_year = st.slider(
+            "Select Year", min_value=2000, max_value=2023,
+            value=2015, step=1
+        )
+    with col_f2:
+        selected_regions = st.multiselect(
+            "Filter by Countries (optional)",
+            options=sorted(df['REF_AREA_LABEL'].unique().tolist()),
+            default=[]
+        )
+
+    yr = str(selected_year)
+    st.markdown("---")
+
+    # apply country filter if selected
+    df_filtered = df.copy()
+    if selected_regions:
+        df_filtered = df_filtered[df_filtered['REF_AREA_LABEL'].isin(selected_regions)]
+
+    # ── SECTION 1: HARDSHIP TYPE ──
+    st.subheader("Average Hardship Rate by Type")
+
+    df_type = df_filtered[
+        (df_filtered['URBANIZATION_LABEL'] == 'Total') &
+        (df_filtered['IC_QUINTILE_LABEL'] == 'All') &
+        (df_filtered['FINANCIAL_HARDSHIP_LABEL'] != 'All')
+    ][['FINANCIAL_HARDSHIP_LABEL', yr]].dropna(subset=[yr])
+
+    df_type_agg = df_type.groupby('FINANCIAL_HARDSHIP_LABEL')[yr].mean().round(2).reset_index()
+    df_type_agg.columns = ['Hardship Type', 'Value']
+    df_type_agg = df_type_agg.sort_values('Value', ascending=True)
+
+    if df_type_agg.empty:
+        st.info("No data available for selected filters.")
+    else:
+        fig_type = px.bar(
+            df_type_agg,
+            x='Value', y='Hardship Type',
+            orientation='h',
+            color='Value',
+            color_continuous_scale=["#d0eaf3", "#4a9cba", "#0c5369"],
+            labels={'Value': '% Population', 'Hardship Type': ''}
+        )
+        fig_type.update_layout(
+            font=dict(family="Montserrat, sans-serif"),
+            coloraxis_showscale=False,
+            height=320,
+            margin=dict(l=0, r=20, t=40, b=0),
+            xaxis_title="% Population facing financial hardship"
+        )
+        st.plotly_chart(fig_type, use_container_width=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── SECTION 2: URBANIZATION ──
+    st.subheader("Average Hardship Rate by Urbanization")
+
+    df_urban = df_filtered[
+        (df_filtered['IC_QUINTILE_LABEL'] == 'All') &
+        (df_filtered['FINANCIAL_HARDSHIP_LABEL'] == 'All') &
+        (df_filtered['URBANIZATION_LABEL'] != 'Total')
+    ][['URBANIZATION_LABEL', yr]].dropna(subset=[yr])
+
+    df_urban_agg = df_urban.groupby('URBANIZATION_LABEL')[yr].mean().round(2).reset_index()
+    df_urban_agg.columns = ['Urbanization', 'Value']
+    df_urban_agg = df_urban_agg.sort_values('Value', ascending=True)
+
+    if df_urban_agg.empty:
+        st.info("No urbanization data available for selected filters.")
+    else:
+        fig_urban = px.bar(
+            df_urban_agg,
+            x='Urbanization', y='Value',
+            color='Value',
+            color_continuous_scale=["#d0eaf3", "#4a9cba", "#0c5369"],
+            labels={'Value': '% Population', 'Urbanization': ''}
+        )
+        fig_urban.update_layout(
+            font=dict(family="Montserrat, sans-serif"),
+            coloraxis_showscale=False,
+            height=350,
+            margin=dict(l=0, r=0, t=40, b=0),
+            yaxis_title="% Population facing financial hardship"
+        )
+        st.plotly_chart(fig_urban, use_container_width=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── SECTION 3: WEALTH QUINTILE ──
+    st.subheader("Average Hardship Rate by Wealth Quintile")
+
+    df_quint = df_filtered[
+        (df_filtered['URBANIZATION_LABEL'] == 'Total') &
+        (df_filtered['FINANCIAL_HARDSHIP_LABEL'] == 'All') &
+        (df_filtered['IC_QUINTILE_LABEL'] != 'All')
+    ][['IC_QUINTILE_LABEL', yr]].dropna(subset=[yr])
+
+    df_quint_agg = df_quint.groupby('IC_QUINTILE_LABEL')[yr].mean().round(2).reset_index()
+    df_quint_agg.columns = ['Wealth Quintile', 'Value']
+
+    quintile_order = [
+        'Wealth quintile 1 (poorest)',
+        'Wealth quintile 2',
+        'Wealth quintile 3',
+        'Wealth quintile 4',
+        'Wealth quintile 5 (richest)'
+    ]
+    df_quint_agg['Wealth Quintile'] = pd.Categorical(
+        df_quint_agg['Wealth Quintile'],
+        categories=quintile_order,
+        ordered=True
+    )
+    df_quint_agg = df_quint_agg.sort_values('Wealth Quintile')
+
+    if df_quint_agg.empty:
+        st.info("No wealth quintile data available for selected filters.")
+    else:
+        fig_quint = px.bar(
+            df_quint_agg,
+            x='Wealth Quintile', y='Value',
+            color='Value',
+            color_continuous_scale=["#d0eaf3", "#4a9cba", "#0c5369"],
+            labels={'Value': '% Population', 'Wealth Quintile': ''}
+        )
+        fig_quint.update_layout(
+            font=dict(family="Montserrat, sans-serif"),
+            coloraxis_showscale=False,
+            height=380,
+            margin=dict(l=0, r=0, t=40, b=0),
+            yaxis_title="% Population facing financial hardship"
+        )
+        st.plotly_chart(fig_quint, use_container_width=True)
