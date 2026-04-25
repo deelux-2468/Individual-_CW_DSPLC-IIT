@@ -65,6 +65,23 @@ st.markdown("""
             color: white !important;
         }
         
+        [data-testid="stSlider"] div {
+        color: white !important;
+        }
+
+        [data-baseweb="slider"] [role="slider"] {
+        background-color: white !important;
+        border-color: white !important;
+        }
+
+        [data-baseweb="slider"] div[class*="TrackHighlight"] {
+        background-color: white !important;
+        }
+
+        [data-baseweb="slider"] div[class*="Track"] {
+        background-color: rgba(255,255,255,0.3) !important;
+        }
+        
         /* ── SLIDER: the circular thumb you drag ── */
         [data-baseweb="slider"] [role="slider"] {
             background-color: white !important;
@@ -80,6 +97,7 @@ st.markdown("""
         [data-baseweb="slider"] div[class*="Track"] {
             background-color: #cccccc !important;
         }
+            
         /* ── DIVIDER: custom horizontal rule - thick and white ── */
     hr {
         border: none;
@@ -89,8 +107,50 @@ st.markdown("""
         /* ── MULTISELECT: tag background colour ── */
         [data-testid="stMultiSelect"] span[data-baseweb="tag"] {
         background-color: #0c5369 !important;}
+            
+        section[data-testid="stSidebar"] {
+        padding-top: 0rem !important;
+        }
+
+        section[data-testid="stSidebar"] > div:first-child {
+        padding-top: 0rem !important;
+        }
+
+        section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {
+        padding-top: 0rem !important;
+            gap: 0rem !important;
+        }
+        [data-testid="stSidebar"] .stButton button {
+        background-color: transparent !important;
+        border: none !important;
+        color: #0c5369 !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        padding: 10px 16px !important;
+        border-radius: 8px !important;
+        font-family: 'Lexend Deca', sans-serif !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        width: 100% !important;
+        }
+
+        [data-testid="stSidebar"] .stButton button:hover {
+        background-color: rgba(12,83,105,0.15) !important;
+        }
+        
+        [data-testid="stSidebar"] {
+            padding-top: 0rem !important;
+        }
+
+        [data-testid="stSidebar"] > div:first-child {
+        padding-top: 0rem !important;
+        margin-top: -75px !important;
+        }
     </style>
 """, unsafe_allow_html=True)
+
+if 'page' not in st.session_state:
+    st.session_state.page = 'Global Overview'
 
 # ── LOAD DATA ──
 @st.cache_data
@@ -112,19 +172,30 @@ df_total = df[
 base_dir = os.path.dirname(os.path.abspath(__file__))
 logo_path = os.path.join(base_dir, 'WHO_logo.png')
 st.sidebar.image(logo_path, width=250)
-st.sidebar.title("Global Health Dashboard")
+st.sidebar.markdown("<br><br><br>", unsafe_allow_html=True)
+st.sidebar.markdown('</div>', unsafe_allow_html=True)
 st.sidebar.markdown("Exploring Financial Hardship due to out-of-pocket health expenditure across 162 countries (2000–2023)")
 st.sidebar.markdown("---")
 
-page = st.sidebar.radio("Navigate", [
-    "Global Overview",
-    "Trends Over Time",
-    "Country Deep Dive",
-    "Breakdown Analysis"
-])
+pages = ["Global Overview", "Trends Over Time", "Country Deep Dive", "Breakdown Analysis"]
+
+for p in pages:
+    if st.sidebar.button(p, key=f"nav_{p}", use_container_width=True):
+        st.session_state.page = p
+        st.rerun()
+
+page = st.session_state.page
 
 st.sidebar.markdown("---")
+st.sidebar.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 st.sidebar.markdown("**Data Source:** WHO Universal Health Coverage")
+
+st.markdown("""
+    <h1 style="color:white; font-family:'Lexend Deca',sans-serif; 
+               font-size:70px; margin-bottom:4px; margin-top:-50px;">
+        Global Health Dashboard
+    </h1>
+""", unsafe_allow_html=True)
 
 if page == "Global Overview":
     st.title("Global Overview")
@@ -225,6 +296,7 @@ if page == "Global Overview":
     st.subheader(f"Distribution of Hardship Rates — {selected_year}")
 
     # Build histogram data manually so we can colour each bar by its x value
+    import numpy as np
     counts, bin_edges = np.histogram(map_df['Value'].dropna(), bins=30)
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
 
@@ -471,7 +543,6 @@ elif page == "Country Deep Dive":
 
     else:
         st.warning("No data available for the selected country and hardship type.")
-
 elif page == "Breakdown Analysis":
     st.title("Breakdown Analysis")
     st.markdown("Explore financial hardship across different dimensions — urbanization, wealth quintile and hardship type.")
