@@ -133,7 +133,11 @@ st.markdown("""
         font-weight: 500 !important;
         width: 100% !important;
         }
-
+        [data-testid="stSidebar"] button p {
+        text-align: left !important;
+        width: 100% !important;
+        }
+            
         [data-testid="stSidebar"] .stButton button:hover {
         background-color: rgba(12,83,105,0.15) !important;
         }
