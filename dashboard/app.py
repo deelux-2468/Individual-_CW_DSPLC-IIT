@@ -156,7 +156,7 @@ if 'page' not in st.session_state:
 @st.cache_data
 def load_data():
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    path = os.path.join(base_dir, '..', 'Cleaned_Datasets', 'Financial_Hardships_Cleaned.csv')
+    path = os.path.join(base_dir, '..', 'Cleaned_datasets', 'Financial_Hardships_Cleaned.csv')
     return pd.read_csv(path)
 
 df = load_data()
