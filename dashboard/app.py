@@ -126,7 +126,7 @@ st.markdown("""
         color: #0c5369 !important;
         text-align: left !important;
         justify-content: flex-start !important;
-        padding: 10px 16px !important;
+        padding-left:16px !important;
         border-radius: 8px !important;
         font-family: 'Lexend Deca', sans-serif !important;
         font-size: 14px !important;
