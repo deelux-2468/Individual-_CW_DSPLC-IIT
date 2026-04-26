@@ -172,7 +172,7 @@ df_total = df[
 base_dir = os.path.dirname(os.path.abspath(__file__))
 logo_path = os.path.join(base_dir, 'WHO_logo.png')
 st.sidebar.image(logo_path, width=250)
-st.sidebar.markdown("<br><br><br>", unsafe_allow_html=True)
+st.sidebar.markdown("<br><br>", unsafe_allow_html=True)
 st.sidebar.markdown('</div>', unsafe_allow_html=True)
 st.sidebar.markdown("Exploring Financial Hardship due to out-of-pocket health expenditure across 162 countries (2000–2023)")
 st.sidebar.markdown("---")
@@ -187,7 +187,7 @@ for p in pages:
 page = st.session_state.page
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
+st.sidebar.markdown("<br><br><br>", unsafe_allow_html=True)
 st.sidebar.markdown("**Data Source:** WHO Universal Health Coverage")
 
 st.markdown("""
