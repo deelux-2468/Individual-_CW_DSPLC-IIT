@@ -296,7 +296,6 @@ if page == "Global Overview":
     st.subheader(f"Distribution of Hardship Rates — {selected_year}")
 
     # Build histogram data manually so we can colour each bar by its x value
-    import numpy as np
     counts, bin_edges = np.histogram(map_df['Value'].dropna(), bins=30)
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
 
